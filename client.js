@@ -15,8 +15,7 @@ const connectionStatesMsg = {
   [connectionStates.error]: "Error occured. More info: "
 };
 
-const handleConnectionStateChange = (state, event = "") =>
-  console.log(connectionStatesMsg[state], event);
+const handleConnectionStateChange = (state, event = "") => console.log(connectionStatesMsg[state], event);
 
 const handleSend = e => {
   const name = document.querySelector("#name"),
@@ -28,7 +27,7 @@ const handleSend = e => {
 
   connection.send(JSON.stringify(data));
 
-  name.value = "";
+  name.disabled = true;
   msg.value = "";
 };
 
@@ -37,7 +36,11 @@ const addEventListeners = () => {
   sendBtn.addEventListener("click", handleSend);
 };
 
-const handleMessageDisplay = ({name, msg}) => {
+const handleConnectionsDisplay = (senderId, currentConnectionsSize) => {
+  document.querySelector("#connected").innerHTML = currentConnectionsSize;
+};
+
+const handleMessageDisplay = (name, msg) => {
   const chat = document.querySelector("#chat"),
     chatData = `<p>From: ${name}, Message: ${msg}</p>`;
   chat.insertAdjacentHTML("beforeend", chatData);
@@ -45,11 +48,17 @@ const handleMessageDisplay = ({name, msg}) => {
 
 const initConnectionsHandler = () => {
   connection.onopen = () => handleConnectionStateChange(connectionStates.open);
-  connection.onclose = () =>
-    handleConnectionStateChange(connectionStates.close);
-  connection.onerror = error =>
-    handleConnectionStateChange(connectionStates.open, error);
-  connection.onmessage = ({data}) => handleMessageDisplay(JSON.parse(data));
+  connection.onclose = () => handleConnectionStateChange(connectionStates.close);
+  connection.onerror = error => handleConnectionStateChange(connectionStates.open, error);
+  connection.onmessage = ({data}) => {
+    const {name, msg, senderId, currentConnectionsSize} = JSON.parse(data);
+
+    if (name && msg) {
+      handleMessageDisplay(name, msg);
+    } else if (senderId && currentConnectionsSize) {
+      handleConnectionsDisplay(senderId, currentConnectionsSize);
+    }
+  };
 };
 
 const connectClient = () => {
