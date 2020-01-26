@@ -46,14 +46,24 @@ const handleMessageDisplay = (name, msg) => {
   chat.insertAdjacentHTML("beforeend", chatData);
 };
 
+const handleConnectionIdListDisplay = connectionIdList => {
+  const list = document.querySelector("#connection-list");
+
+  connectionIdList.forEach(listItem => {
+    list.insertAdjacentHTML("beforeend", `${listItem} </br>`);
+  });
+}
+
 const initConnectionsHandler = () => {
   connection.onopen = () => handleConnectionStateChange(connectionStates.open);
   connection.onclose = () => handleConnectionStateChange(connectionStates.close);
   connection.onerror = error => handleConnectionStateChange(connectionStates.open, error);
   connection.onmessage = ({data}) => {
-    const {name, msg, senderId, currentConnectionsSize} = JSON.parse(data);
+    const {name, msg, senderId, currentConnectionsSize, connectionIdList} = JSON.parse(data);
 
-    if (name && msg) {
+    if (connectionIdList) {
+      handleConnectionIdListDisplay(connectionIdList);
+    } else if (name && msg) {
       handleMessageDisplay(name, msg);
     } else if (senderId && currentConnectionsSize) {
       handleConnectionsDisplay(senderId, currentConnectionsSize);
